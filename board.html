@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Bag Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2ede5; --bg2:#e9e2d7; --ink:#201915; --muted:#766b63; --line:#d6cbbd; --card:#fbf9f5;
+  --accent:#4a1f1f; --accent-ink:#f8f3ec; --soft:#e6dccf; --gold:#b48a5a; --ok:#3f6b4f; --shadow:rgba(40,25,15,.22);
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#171311; --bg2:#1f1915; --ink:#f0e8df; --muted:#a69a8f; --line:#3b322c; --card:#221c18;
+  --accent:#e2c2b2; --accent-ink:#1b1512; --soft:#2c2420; --gold:#caa072; --ok:#8dbf9c; --shadow:rgba(0,0,0,.5); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#171311; --bg2:#1f1915; --ink:#f0e8df; --muted:#a69a8f; --line:#3b322c; --card:#221c18;
+  --accent:#e2c2b2; --accent-ink:#1b1512; --soft:#2c2420; --gold:#caa072; --ok:#8dbf9c; --shadow:rgba(0,0,0,.5); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Karla,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:720px;margin:0 auto;padding:22px 16px 120px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:300;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(38px,10vw,56px);line-height:1}
+h2{font-size:clamp(24px,6vw,32px);line-height:1.1}
+h3{font-size:22px;font-weight:500;line-height:1.15}
+em{font-style:italic;font-weight:300}
+p{margin:0}
+.muted{color:var(--muted)}
+.tiny{font-size:13px;color:var(--muted)}
+.count{font-family:Fraunces,serif;font-size:15px;color:var(--muted);margin-bottom:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;font-size:15px;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{min-height:38px;padding:0 14px;font-size:14px}
+.btn:disabled{opacity:.4;cursor:default}
+.btn:focus-visible,.seg button:focus-visible,.sw:focus-visible,.dot:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card)}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;font-size:14px;padding:8px 14px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.brief{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:0 0 18px}
+.brief summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.brief summary::-webkit-details-marker{display:none}
+.brief summary::after{content:"+";font-family:Fraunces,serif;font-size:22px;color:var(--muted)}
+.brief[open] summary::after{content:"–"}
+.brief p{margin-top:10px;font-size:15px;white-space:pre-wrap}
+.brief textarea{margin-top:10px}
+
+/* stage */
+.stage{position:relative;height:min(60vh,520px);perspective:1300px;touch-action:pan-y;user-select:none;-webkit-user-select:none;margin:0 -16px}
+.cardw{position:absolute;left:50%;top:50%;width:min(76vw,330px);height:min(56vh,480px);margin:calc(min(56vh,480px) / -2) 0 0 calc(min(76vw,330px) / -2);transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s;will-change:transform;cursor:pointer}
+.stage.dragging .cardw{transition:none}
+.card3d{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.2,.8,.2,1)}
+.cardw.on .card3d{animation:float 5s ease-in-out infinite}
+.cardw.on.flipped .card3d{transform:rotateY(180deg);animation:none}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){.cardw.on .card3d{animation:none}.cardw,.card3d{transition:none}}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:26px;background:var(--card);border:1px solid var(--line);box-shadow:0 30px 60px -20px var(--shadow);padding:20px;display:flex;flex-direction:column;overflow:hidden}
+.face.back{transform:rotateY(180deg)}
+.face .big{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.face .big svg{width:72%;height:auto;max-height:100%;filter:drop-shadow(0 18px 20px var(--shadow))}
+.face .brand{font-size:13px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.face .nm{font-family:Fraunces,serif;font-size:24px;font-weight:500;line-height:1.1;margin-top:2px}
+.face .pr{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
+.face .price{font-family:Fraunces,serif;font-size:22px;font-weight:500}
+.face .price small{font-family:Karla,sans-serif;font-size:12px;color:var(--muted);font-weight:400;margin-left:5px}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--soft);font-size:12px;font-weight:600}
+.face .colname{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);margin-top:8px}
+.face .colname i{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.face.back .k{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:uppercase;margin-top:12px}
+.face.back .v{font-size:15px}
+.face.back .flipnote{margin-top:auto;font-size:12px;color:var(--muted)}
+.stagebar{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 16px}
+.dots{display:flex;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer}
+.dot.on{background:var(--gold);width:22px;border-radius:4px}
+.arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+.arrow:disabled{opacity:.3}
+.hintline{text-align:center;font-size:13px;color:var(--muted);margin:-8px 0 14px}
+
+/* panel */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.panel h3{margin-bottom:2px}
+.colors{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.sw{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 12px 7px 7px;background:transparent;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.sw i{width:22px;height:22px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.sw.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sw.out{opacity:.55}
+.sw small{color:var(--muted)}
+.sizebar{margin:16px 0 2px}
+.sizebar .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);gap:10px}
+.sizebar .t{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:4px}
+.sizebar .t i{display:block;height:100%;background:var(--gold)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:14px 0 4px;font-size:15px}
+.facts b{display:block;font-weight:600;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.fits{margin-top:10px;font-size:14px}
+.fits span{display:inline-block;background:var(--soft);border-radius:8px;padding:4px 10px;margin:4px 6px 0 0}
+details.more{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+details.more summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:"+";font-family:Fraunces,serif;font-size:22px;color:var(--muted)}
+details.more[open] summary::after{content:"–"}
+details.more ul{margin:10px 0 0;padding-left:18px;font-size:15px}
+details.more li{margin:6px 0}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:600;margin-left:6px}
+
+/* forms */
+input[type=text],input[type=number],input[type=url],textarea,select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+textarea{min-height:88px;resize:vertical}
+.f{display:grid;gap:4px;margin-top:12px}
+.f label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.f .h{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* rank */
+.rk{display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.rk:first-child{border-top:0}
+.rk .n{font-family:Fraunces,serif;font-size:28px;font-weight:300;color:var(--muted)}
+.rk .ar{display:flex;gap:4px}
+.rk .ar button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:17px;cursor:pointer}
+.rk .ar button:disabled{opacity:.3}
+.yn{display:inline-flex;gap:6px;margin-top:6px}
+.yn button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:5px 12px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer}
+.yn button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.rk input[type=text]{margin-top:8px;font-size:14px;padding:8px 11px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:9;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.hide{display:none !important}
+@media (min-width:720px){.stage{margin:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <div>
+    <p class="count" id="count">The shortlist</p>
+    <h1>The <em>lineup.</em></h1>
+  </div>
+  <div class="seg" id="modes">
+    <button data-mode="view" class="on">Look</button>
+    <button data-mode="edit">Edit</button>
+    <button data-mode="rank">Rank</button>
+  </div>
+</div>
+
+<details class="brief" id="brief">
+  <summary>What Maggie told us</summary>
+  <p id="brieftext"></p>
+  <textarea id="briefedit" class="hide" placeholder="Notes from the questionnaire"></textarea>
+</details>
+
+<div class="stage" id="stage"></div>
+<div class="stagebar">
+  <button class="arrow" id="prev" aria-label="Previous bag">←</button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" aria-label="Next bag">→</button>
+</div>
+<p class="hintline" id="stagehint">Swipe to turn the lineup. Tap the bag to flip it.</p>
+
+<div class="panel" id="panel"></div>
+
+<div class="row" id="sharerow">
+  <button class="btn ghost" id="copylink">Copy link to this lineup</button>
+  <a class="btn ghost" id="studylink" href="./">Back to the questionnaire</a>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- delivery (same relay as the questionnaire) ----------
+const TO = "jonathan@velumagency.com";
+const ENDPOINT = "https://formsubmit.co/ajax/" + TO;
+const LS = "bagboard-v1";
+
+// ---------- data ----------
+const SIL = {
+  hobo:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 44c0-14 8-26 20-26s20 12 20 26" opacity=".7"/><path d="M14 46h72c2 0 3 2 3 4l-5 30c-1 4-4 7-8 7H24c-4 0-7-3-8-7l-5-30c0-2 1-4 3-4z" fill="currentColor" fill-opacity=".55"/><circle cx="50" cy="56" r="3"/></svg>`,
+  pouch:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M50 10c0 10-12 18-14 30" opacity=".7"/><path d="M50 10c0 10 12 18 14 30" opacity=".7"/><path d="M34 40c-14 6-20 18-18 32 2 10 12 16 34 16s32-6 34-16c2-14-4-26-18-32" fill="currentColor" fill-opacity=".55"/><path d="M34 40c8 4 24 4 32 0"/><circle cx="22" cy="70" r="4"/><circle cx="78" cy="70" r="4"/></svg>`,
+  satchel:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M38 34c0-10 5-16 12-16s12 6 12 16" opacity=".7"/><rect x="14" y="34" width="72" height="50" rx="8" fill="currentColor" fill-opacity=".55"/><path d="M14 52h72"/><rect x="42" y="46" width="16" height="12" rx="3"/></svg>`,
+  tote:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M32 36c0-14 8-22 18-22s18 8 18 22" opacity=".7"/><path d="M16 36h68l-4 44c0 4-4 7-8 7H28c-4 0-8-3-8-7z" fill="currentColor" fill-opacity=".55"/><path d="M26 50l48 20M26 70l48-20M38 46l24 32M62 46L38 78" opacity=".35"/><circle cx="50" cy="36" r="4" fill="currentColor"/></svg>`,
+  box:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M36 30c0-9 6-14 14-14s14 5 14 14" opacity=".7"/><rect x="18" y="30" width="64" height="52" rx="10" fill="currentColor" fill-opacity=".55"/><path d="M18 44h64"/><circle cx="50" cy="60" r="4"/></svg>`,
+};
+const DEFAULT_BAGS = [
+  {id:"camille", brand:"Celine", name:"Medium Camille 16 Soft", price:3550, priceNote:"", tier:"Medium", w:36, h:29.5, d:7,
+   dims:"36 × 29.5 × 7 cm", leather:"Smooth calfskin, lambskin lining", hw:"Gold turn lock",
+   carry:"Shoulder (short strap) · crossbody (long strap) · hand",
+   shape:"Soft hobo. Wide, flat, and slouchy, with a structured cut borrowed from Celine's 16 tote.",
+   fits:["Trousers and a blazer","Tan coat and knee boots","Jeans and a white tee"],
+   reviews:["Owners who tried both sizes say the small is too small at 5'6\" and up; the medium is the one.","Compared to an Hermès Evelyne in how it wears, roomy and relaxed.","Spotted on Reese Witherspoon, Naomi Watts, and Sydney Sweeney this year. It's having a moment, which also means you'll see it around."],
+   colors:[
+     {name:"Modern Taupe", hex:"#a8988a", note:"Sold out at Celine", out:true},
+     {name:"Tan", hex:"#b98a5e", note:"In stock"},
+     {name:"Chestnut", hex:"#6e4634", note:"In stock, new this season"},
+     {name:"Purple", hex:"#5c3a6b", note:"Via Lyst, third-party seller"},
+   ], color:"Chestnut", url:"https://www.celine.com/en-us/women/handbags/more-lines-2/medium-camille-16-soft-bag-in-smooth-calfskin-119563FX9.18CH.html", reviewsUrl:"", sil:"hobo"},
+  {id:"flamenco", brand:"Loewe", name:"Medium Flamenco Clutch", price:3250, priceNote:"approx.", tier:"Medium", w:30, h:24.5, d:10.5,
+   dims:"30 × 24.5 × 10.5 cm", leather:"Nappa calfskin, suede lining", hw:"Magnetic closure, knot drawstrings",
+   carry:"Clutch (hold by the knots) · shoulder · crossbody (detachable strap)",
+   shape:"Slouchy pouch that cinches at the top. Soft and casual, with the Loewe knots as the signature.",
+   fits:["Linen and sandals","Oversized knit and jeans","A slip dress, carried as a clutch"],
+   reviews:["The leather is the thing. Owners call it supple, buttery, and beautifully made.","The strap is thin, and some find it uncomfortable loaded up. Several owners carry it as a clutch most of the time.","Corners can show wear with heavy crossbody use. Treat it gently."],
+   colors:[
+     {name:"Sand", hex:"#d9c6a5", note:"Light, shows marks more"},
+     {name:"Chocolate", hex:"#4b3127", note:"Dark, forgiving"},
+   ], color:"Chocolate", url:"https://www.loewe.com/usa/en/women/bags/flamenco/medium-flamenco-clutch-in-nappa-calfskin/A411FC1XD4-3606.html", reviewsUrl:"", sil:"pouch"},
+  {id:"rodeo", brand:"Balenciaga", name:"Rodeo Small", price:4350, priceNote:"approx.", tier:"Small–Medium", w:27, h:20, d:10,
+   dims:"27 × 20 × 10 cm", leather:"Smooth calfskin, aged hardware", hw:"Turn lock, charms",
+   carry:"Top handle · shoulder strap (removable) · crossbody",
+   shape:"Structured satchel with a top handle. The most 'handbag' of the four; a vintage Kelly feel, deliberately worn-in.",
+   fits:["Blazer and loafers","Leather jacket and boots","Dressed up for dinner"],
+   reviews:["Praised as well designed and carefully made. Fans call it modern and under the radar.","The long strap is thin, and the bag can feel heavy worn crossbody. It's happiest on the arm or shoulder.","One owner reported a frustrating repair experience with Balenciaga."],
+   colors:[ {name:"Caramel", hex:"#b87a45", note:"Warm, mid brown"} ],
+   color:"Caramel", url:"https://www.balenciaga.com/en-us/rodeo-handbag-small-caramel-814479321.html", reviewsUrl:"", sil:"satchel"},
+  {id:"andiamo", brand:"Bottega Veneta", name:"Medium Andiamo", price:5900, priceNote:"", tier:"Medium–Large", w:31, h:25, d:13,
+   dims:"31 × 25 × 13 cm", leather:"Intrecciato woven lambskin", hw:"Brass knot, magnetic closure",
+   carry:"Top handle · shoulder · crossbody (sliding strap)",
+   shape:"Woven carry-all with rounded corners. Roomy, with two compartments and a zip pocket. The heaviest of the four.",
+   fits:["Trench and trousers","Airport, with a sweater and sneakers","Work, with everything inside"],
+   reviews:["Treated as a modern classic. It crosses from errands to work to travel, and it reads as quiet luxury.","Owners note the strap, knot, and pocket all detach, so it can go minimal.","Woven lambskin is soft. Corners and edges show wear faster than a smooth calfskin bag."],
+   colors:[ {name:"Deep Mahogany", hex:"#5a2e24", note:"Rich reddish brown"} ],
+   color:"Deep Mahogany", url:"https://www.bottegaveneta.com/en-us/andiamo-deep-mahogany-814493119.html", reviewsUrl:"", sil:"tote"},
+];
+const DEFAULT_BRIEF = "Carries it crossbody, on the shoulder or in hand, depends on the day.\nInside on a normal day: phone, wallet, sunglasses, makeup bag, water bottle, snacks, charger, chaos. Overstuffs sometimes.\nWears black, cream and white, brown, tan, camel. The bag is for all of it.\nTwo bags over one. Never: a cumbersome flap or zipper, or cloth and fuzz that get dirty.\nCurrent favorite: the bunny bag.";
+
+// ---------- state ----------
+const clone = x => JSON.parse(JSON.stringify(x));
+let S = {v:1, bags:clone(DEFAULT_BAGS), order:DEFAULT_BAGS.map(b=>b.id), tuesday:{}, notes:{}, brief:DEFAULT_BRIEF, by:"", active:0, mode:"view"};
+const save = () => { try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} };
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => "$" + Number(n||0).toLocaleString("en-US");
+const bag = () => S.bags[S.active];
+const colOf = b => b.colors.find(c=>c.name===b.color) || b.colors.find(c=>!c.out) || b.colors[0] || {name:"",hex:"#8a7a6a"};
+const reviewsHref = b => b.reviewsUrl || ("https://www.google.com/search?q=" + encodeURIComponent(b.brand + " " + b.name + " review"));
+function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("on"), 2200); }
+function normalize(){
+  S.bags = (S.bags||[]).filter(b => b && b.id);
+  S.bags.forEach(b => { b.colors = Array.isArray(b.colors)&&b.colors.length ? b.colors : [{name:"Default",hex:"#8a7a6a",note:""}]; b.fits = b.fits||[]; b.reviews = b.reviews||[]; if(!SIL[b.sil]) b.sil = "box"; });
+  const ids = S.bags.map(b=>b.id);
+  S.order = (S.order||[]).filter(id => ids.includes(id)); ids.forEach(id => { if(!S.order.includes(id)) S.order.push(id); });
+  if(S.active >= S.bags.length) S.active = Math.max(0, S.bags.length-1);
+  if(!["view","edit","rank"].includes(S.mode)) S.mode = "view";
+}
+
+// ---------- share link (state in the URL hash) ----------
+const b64u = { enc: bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""), dec: s => Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")), c=>c.charCodeAt(0)) };
+async function encodeState(){
+  const json = JSON.stringify({bags:S.bags, order:S.order, tuesday:S.tuesday, notes:S.notes, brief:S.brief, by:S.by});
+  const raw = new TextEncoder().encode(json);
+  if(typeof CompressionStream === "function"){
+    try{ const cs = new CompressionStream("deflate-raw"); const w = cs.writable.getWriter(); w.write(raw); w.close();
+      const buf = await new Response(cs.readable).arrayBuffer(); return "z." + b64u.enc(new Uint8Array(buf)); }catch(e){}
+  }
+  return "j." + b64u.enc(raw);
+}
+async function decodeState(s){
+  const kind = s.slice(0,2), body = s.slice(2); let bytes = b64u.dec(body);
+  if(kind==="z."){ const ds = new DecompressionStream("deflate-raw"); const w = ds.writable.getWriter(); w.write(bytes); w.close(); bytes = new Uint8Array(await new Response(ds.readable).arrayBuffer()); }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function shareLink(){ const u = new URL(location.href); u.hash = "s=" + await encodeState(); return u.toString(); }
+
+// ---------- stage ----------
+let flipped = false, drag = null;
+function renderStage(){
+  const st = $("#stage");
+  st.innerHTML = S.bags.map((b,k) => {
+    const c = colOf(b);
+    return `<div class="cardw" data-k="${k}"><div class="card3d">
+      <div class="face front">
+        <div class="big" style="color:${esc(c.hex)}">${SIL[b.sil]||SIL.box}</div>
+        <p class="brand">${esc(b.brand)}</p><div class="nm">${esc(b.name)}</div>
+        <div class="pr"><span class="price">${fmt(b.price)}${b.priceNote?`<small>${esc(b.priceNote)}</small>`:""}</span><span class="chip">${esc(b.tier)}</span></div>
+        <div class="colname"><i style="background:${esc(c.hex)}"></i>${esc(c.name)}</div>
+      </div>
+      <div class="face back">
+        <p class="brand">${esc(b.brand)}</p><div class="nm">${esc(b.name)}</div>
+        <div class="k">Size</div><div class="v">${esc(b.dims)} · ${esc(b.tier)}</div>
+        <div class="k">Carry</div><div class="v">${esc(b.carry)}</div>
+        <div class="k">Leather</div><div class="v">${esc(b.leather)}</div>
+        <div class="k">Hardware</div><div class="v">${esc(b.hw)}</div>
+        <div class="k">Color</div><div class="v">${esc(c.name)}${c.note?` · ${esc(c.note)}`:""}</div>
+        <p class="flipnote">Tap to flip back</p>
+      </div>
+    </div></div>`;
+  }).join("");
+  $("#dots").innerHTML = S.bags.map((b,k)=>`<button class="dot ${k===S.active?"on":""}" data-k="${k}" aria-label="${esc(b.brand)} ${esc(b.name)}"></button>`).join("");
+  layout(0);
+}
+function layout(dx){
+  const st = $("#stage"); const n = S.bags.length;
+  st.querySelectorAll(".cardw").forEach(el => {
+    const k = +el.dataset.k, d = k - S.active, ad = Math.abs(d);
+    el.style.transform = `translateX(${d*64}%) translateX(${dx||0}px) translateZ(${-ad*150}px) rotateY(${-d*34}deg) scale(${1-Math.min(ad,2)*.12})`;
+    el.style.opacity = ad>2 ? 0 : 1; el.style.zIndex = 20-ad; el.style.pointerEvents = ad>2 ? "none" : "auto";
+    el.classList.toggle("on", d===0); el.classList.toggle("flipped", d===0 && flipped);
+  });
+  $("#dots").querySelectorAll(".dot").forEach(dt => dt.classList.toggle("on", +dt.dataset.k===S.active));
+  $("#prev").disabled = S.active===0; $("#next").disabled = S.active>=n-1;
+  $("#count").textContent = n ? `${S.active+1} of ${n} · ${bag().brand}` : "No bags yet";
+}
+function setActive(k){ if(k<0||k>=S.bags.length) return; if(k!==S.active){ flipped=false; S.active=k; save(); } layout(0); renderPanel(); }
+(() => {
+  const st = $("#stage");
+  st.addEventListener("pointerdown", e => { drag = {x:e.clientX, y:e.clientY, t:Date.now(), moved:false, id:e.pointerId}; st.classList.add("dragging"); });
+  st.addEventListener("pointermove", e => { if(!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if(!drag.moved && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)){ drag.moved = true; try{ st.setPointerCapture(drag.id); }catch(x){} } if(drag.moved){ e.preventDefault(); layout(Math.max(-160, Math.min(160, dx))); } });
+  const end = e => { if(!drag) return; st.classList.remove("dragging"); const dx = (e.clientX||drag.x) - drag.x; const moved = drag.moved; const target = e.target.closest(".cardw"); drag = null;
+    if(moved){ if(dx < -40) setActive(S.active+1); else if(dx > 40) setActive(S.active-1); else layout(0); return; }
+    if(target){ const k = +target.dataset.k; if(k===S.active){ flipped = !flipped; layout(0); } else setActive(k); } };
+  st.addEventListener("pointerup", end); st.addEventListener("pointercancel", () => { if(drag){ drag=null; st.classList.remove("dragging"); layout(0); } });
+  $("#prev").addEventListener("click", () => setActive(S.active-1)); $("#next").addEventListener("click", () => setActive(S.active+1));
+  $("#dots").addEventListener("click", e => { const d = e.target.closest(".dot"); if(d) setActive(+d.dataset.k); });
+  document.addEventListener("keydown", e => { if(e.target.matches("input,textarea,select")) return; if(e.key==="ArrowRight") setActive(S.active+1); if(e.key==="ArrowLeft") setActive(S.active-1); });
+})();
+
+// ---------- panel ----------
+const maxW = () => Math.max(1, ...S.bags.map(b=>+b.w||0));
+function renderPanel(){
+  const p = $("#panel"); if(!S.bags.length){ p.innerHTML = `<p class="muted">No bags in the lineup. Switch to Edit and add one.</p>`; return; }
+  if(S.mode==="edit") return renderEdit();
+  if(S.mode==="rank") return renderRank();
+  const b = bag(), c = colOf(b);
+  p.innerHTML = `
+    <p class="count">${esc(b.brand)}</p><h3>${esc(b.name)}</h3>
+    <p class="muted" style="margin-top:6px;font-size:15px">${esc(b.shape)}</p>
+    <div class="colors">${b.colors.map(x => `<button class="sw ${x.name===c.name?"on":""} ${x.out?"out":""}" data-col="${esc(x.name)}"><i style="background:${esc(x.hex)}"></i>${esc(x.name)}${x.note?` <small>· ${esc(x.note)}</small>`:""}</button>`).join("")}</div>
+    <div class="sizebar"><div class="lab"><span>Size<span class="tag">${esc(b.tier)}</span></span><span>${esc(b.dims)}</span></div><div class="t"><i style="width:${Math.min(100,(+b.w||0)/maxW()*100)}%"></i></div></div>
+    <div class="facts"><div><b>Price</b>${fmt(b.price)}${b.priceNote?` <span class="tiny">${esc(b.priceNote)}</span>`:""}</div><div><b>Depth</b>${esc(b.d)} cm, ${(+b.d||0)<9?"slim":"roomy"}</div><div><b>Carry</b>${esc(b.carry)}</div><div><b>Leather</b>${esc(b.leather)}</div><div><b>Hardware</b>${esc(b.hw)}</div><div><b>Color picked</b>${esc(c.name)}</div></div>
+    ${b.fits.length?`<div class="fits">${b.fits.map(f=>`<span>${esc(f)}</span>`).join("")}</div>`:""}
+    ${b.reviews.length?`<details class="more"><summary>What owners say</summary><ul>${b.reviews.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`:""}
+    <div class="links">${b.url?`<a class="btn ghost small" href="${esc(b.url)}" target="_blank" rel="noopener">Product page</a>`:""}<a class="btn ghost small" href="${esc(reviewsHref(b))}" target="_blank" rel="noopener">Reviews</a></div>`;
+  p.querySelectorAll("[data-col]").forEach(btn => btn.addEventListener("click", () => { b.color = btn.dataset.col; save(); renderStage(); renderPanel(); }));
+}
+
+// ---------- edit ----------
+function renderEdit(){
+  const b = bag(); const p = $("#panel");
+  const F = (k, label, val, type="text", hint="") => `<div class="f"><label for="e-${k}">${label}</label><input id="e-${k}" type="${type}" data-f="${k}" value="${esc(val)}">${hint?`<span class="h">${hint}</span>`:""}</div>`;
+  p.innerHTML = `
+    <p class="count">Editing</p><h3>${esc(b.brand)} ${esc(b.name)}</h3>
+    <div class="grid2">${F("brand","Brand",b.brand)}${F("name","Bag name",b.name)}</div>
+    <div class="grid2">${F("price","Price (USD)",b.price,"number")}${F("priceNote","Price note",b.priceNote,"text","e.g. approx.")}</div>
+    <div class="grid2">${F("tier","Size tier",b.tier,"text","Small, Medium, Large")}${F("dims","Dimensions",b.dims,"text","W × H × D cm")}</div>
+    <div class="grid2">${F("w","Width cm (for the size bar)",b.w,"number")}${F("d","Depth cm",b.d,"number")}</div>
+    ${F("leather","Leather",b.leather)}${F("hw","Hardware",b.hw)}${F("carry","Carry",b.carry)}
+    <div class="f"><label for="e-shape">One-line description</label><textarea id="e-shape" data-f="shape">${esc(b.shape)}</textarea></div>
+    <div class="f"><label for="e-colors">Colors, one per line</label><textarea id="e-colors" data-f="colors">${esc(b.colors.map(c=>[c.name,c.hex,c.note||"",c.out?"sold out":""].filter((x,i)=>i<2||x).join(" | ")).join("\n"))}</textarea><span class="h">Name | #hex | note | sold out</span></div>
+    <div class="f"><label for="e-color">Color picked</label><select id="e-color" data-f="color">${b.colors.map(c=>`<option ${c.name===b.color?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+    <div class="f"><label for="e-fits">Goes with, comma separated</label><input id="e-fits" type="text" data-f="fits" value="${esc(b.fits.join(", "))}"></div>
+    <div class="f"><label for="e-reviews">What owners say, one per line</label><textarea id="e-reviews" data-f="reviews">${esc(b.reviews.join("\n"))}</textarea></div>
+    ${F("url","Product page link",b.url,"url")}${F("reviewsUrl","Reviews link",b.reviewsUrl,"url","Blank = a web search for reviews")}
+    <div class="f"><label for="e-sil">Shape on the card</label><select id="e-sil" data-f="sil">${Object.keys(SIL).map(k=>`<option value="${k}" ${k===b.sil?"selected":""}>${k}</option>`).join("")}</select></div>
+    <div class="row"><button class="btn ghost small" id="addbag">Add a bag</button><button class="btn ghost small" id="dupbag">Duplicate this bag</button><button class="btn ghost small" id="delbag">Remove this bag</button><button class="btn ghost small" id="resetall">Reset to the original four</button></div>
+    <p class="tiny" style="margin-top:12px">Changes save on this device as you type. Tap "Copy link to this lineup" to hand the edited lineup to someone else.</p>`;
+  let t;
+  p.querySelectorAll("[data-f]").forEach(inp => inp.addEventListener("input", () => {
+    const k = inp.dataset.f, v = inp.value;
+    if(k==="price"||k==="w"||k==="d") b[k] = +v||0;
+    else if(k==="fits") b.fits = v.split(",").map(s=>s.trim()).filter(Boolean);
+    else if(k==="reviews") b.reviews = v.split("\n").map(s=>s.trim()).filter(Boolean);
+    else if(k==="colors"){ b.colors = v.split("\n").map(line => { const [name,hex,note,out] = line.split("|").map(s=>(s||"").trim()); return name ? {name, hex:/^#[0-9a-f]{3,8}$/i.test(hex)?hex:"#8a7a6a", note:note||"", out:/sold/i.test(out||"")} : null; }).filter(Boolean); if(!b.colors.length) b.colors=[{name:"Default",hex:"#8a7a6a",note:""}]; if(!b.colors.some(c=>c.name===b.color)) b.color = b.colors[0].name; const sel = $("#e-color"); if(sel) sel.innerHTML = b.colors.map(c=>`<option ${c.name===b.color?"selected":""}>${esc(c.name)}</option>`).join(""); }
+    else b[k] = v;
+    save(); clearTimeout(t); t = setTimeout(() => { renderStage(); $("#panel h3").textContent = b.brand + " " + b.name; }, 150);
+  }));
+  $("#addbag").addEventListener("click", () => { const nb = {id:"bag"+Date.now().toString(36), brand:"Brand", name:"New bag", price:0, priceNote:"", tier:"Medium", w:30, h:22, d:10, dims:"30 × 22 × 10 cm", leather:"", hw:"", carry:"", shape:"", fits:[], reviews:[], colors:[{name:"Black",hex:"#1d1a19",note:""}], color:"Black", url:"", reviewsUrl:"", sil:"box"}; S.bags.push(nb); S.order.push(nb.id); S.active = S.bags.length-1; save(); renderStage(); renderPanel(); toast("Added. Fill in the details."); });
+  $("#dupbag").addEventListener("click", () => { const nb = clone(b); nb.id = "bag"+Date.now().toString(36); nb.name = b.name + " (copy)"; S.bags.splice(S.active+1,0,nb); S.order.push(nb.id); S.active++; save(); renderStage(); renderPanel(); });
+  $("#delbag").addEventListener("click", () => { if(!confirm("Remove " + b.brand + " " + b.name + " from the lineup?")) return; S.bags.splice(S.active,1); normalize(); save(); renderStage(); renderPanel(); });
+  $("#resetall").addEventListener("click", () => { if(!confirm("Put the original four bags back? Your edits on this device are lost.")) return; S.bags = clone(DEFAULT_BAGS); S.order = DEFAULT_BAGS.map(x=>x.id); S.active = 0; S.brief = DEFAULT_BRIEF; save(); renderBrief(); renderStage(); renderPanel(); });
+}
+
+// ---------- rank ----------
+function renderRank(){
+  const p = $("#panel"); const byId = id => S.bags.find(b=>b.id===id);
+  p.innerHTML = `<p class="count">Rank</p><h3>Put them in order.</h3><p class="muted" style="margin:6px 0 10px;font-size:15px">Move your favorite to the top. Then say if you'd reach for it on a normal Tuesday.</p>
+    <div id="ranklist">${S.order.map((id,i) => { const b = byId(id), c = colOf(b); return `<div class="rk"><div class="n">${i+1}</div><div><div style="font-weight:600">${esc(b.brand)} ${esc(b.name)}</div><div class="tiny">${esc(c.name)} · ${fmt(b.price)}</div>
+      <div class="yn"><span class="tiny" style="align-self:center;margin-right:4px">Tuesday?</span><button data-yn="yes" data-id="${id}" class="${S.tuesday[id]==="yes"?"on":""}">Yes</button><button data-yn="no" data-id="${id}" class="${S.tuesday[id]==="no"?"on":""}">No</button></div>
+      <input type="text" data-note="${id}" placeholder="A note on this one (optional)" value="${esc(S.notes[id]||"")}"></div>
+      <div class="ar"><button data-mv="-1" data-i="${i}" ${i===0?"disabled":""} aria-label="Move up">↑</button><button data-mv="1" data-i="${i}" ${i===S.order.length-1?"disabled":""} aria-label="Move down">↓</button></div></div>`; }).join("")}</div>
+    <div class="f" style="margin-top:18px"><label for="by">Your name</label><input id="by" type="text" value="${esc(S.by)}" placeholder="So Jon knows whose ranking this is"></div>
+    <div class="row"><button class="btn" id="sendrank">Send ranking to Jon</button><button class="btn ghost" id="copyrank">Copy ranking</button></div>
+    <p class="tiny" id="sendnote" style="margin-top:10px"></p>`;
+  p.querySelectorAll("[data-mv]").forEach(btn => btn.addEventListener("click", () => { const i = +btn.dataset.i, j = i + (+btn.dataset.mv); [S.order[i], S.order[j]] = [S.order[j], S.order[i]]; save(); renderRank(); }));
+  p.querySelectorAll("[data-yn]").forEach(btn => btn.addEventListener("click", () => { S.tuesday[btn.dataset.id] = btn.dataset.yn; save(); renderRank(); }));
+  p.querySelectorAll("[data-note]").forEach(inp => inp.addEventListener("input", () => { S.notes[inp.dataset.note] = inp.value; save(); }));
+  $("#by").addEventListener("input", e => { S.by = e.target.value; save(); });
+  $("#copyrank").addEventListener("click", async () => { try{ await navigator.clipboard.writeText(rankText()); toast("Ranking copied"); }catch(e){ toast("Could not copy. Select the text instead."); } });
+  $("#sendrank").addEventListener("click", sendRank);
+}
+function rankText(){
+  const byId = id => S.bags.find(b=>b.id===id);
+  const L = ["Bag board ranking from " + (S.by||"someone")];
+  S.order.forEach((id,i) => { const b = byId(id); L.push((i+1) + ". " + b.brand + " " + b.name + " in " + colOf(b).name + " (" + fmt(b.price) + ") — Tuesday: " + (S.tuesday[id]||"–") + (S.notes[id] ? " — " + S.notes[id] : "")); });
+  return L.join("\n");
+}
+async function sendRank(){
+  const btn = $("#sendrank"), note = $("#sendnote"); btn.disabled = true; btn.textContent = "Sending…";
+  const link = await shareLink();
+  const payload = {_subject:"Bag board ranking: " + (S.by||"someone"), _template:"table", _captcha:"false", Name:S.by||"", Ranking:rankText(), "Lineup link":link};
+  const ctl = new AbortController(); const timer = setTimeout(()=>ctl.abort(), 15000);
+  let ok = false, msg = "";
+  try{ const res = await fetch(ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify(payload), signal:ctl.signal}); let j = {}; try{ j = await res.json(); }catch(e){} ok = res.ok && String(j.success)==="true"; msg = String(j.message||""); }catch(e){}
+  clearTimeout(timer); btn.disabled = false; btn.textContent = "Send ranking to Jon";
+  if(ok){ note.textContent = "Sent to Jon."; toast("Sent to Jon"); }
+  else { const mailto = "mailto:" + TO + "?subject=" + encodeURIComponent("Bag board ranking: " + (S.by||"")) + "&body=" + encodeURIComponent(rankText() + "\n\nLineup: " + link); note.innerHTML = `The automatic email did not go through. <a class="btn ghost small" href="${esc(mailto)}" style="margin-left:6px">Email it instead</a>`; }
+}
+
+// ---------- brief, modes, share ----------
+function renderBrief(){ $("#brieftext").textContent = S.brief; $("#briefedit").value = S.brief; const editing = S.mode==="edit"; $("#brieftext").classList.toggle("hide", editing); $("#briefedit").classList.toggle("hide", !editing); }
+$("#briefedit").addEventListener("input", e => { S.brief = e.target.value; $("#brieftext").textContent = S.brief; save(); });
+function setMode(m){ S.mode = m; save(); $("#modes").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.mode===m)); $("#stagehint").textContent = m==="edit" ? "Swipe to the bag you want to change. The form below edits it." : m==="rank" ? "The order below is the ranking. Swipe up here to look again." : "Swipe to turn the lineup. Tap the bag to flip it."; if(m==="edit") $("#brief").open = true; renderBrief(); renderPanel(); }
+$("#modes").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if(b) setMode(b.dataset.mode); });
+$("#copylink").addEventListener("click", async () => { const link = await shareLink(); try{ await navigator.clipboard.writeText(link); toast("Link copied. It carries this exact lineup."); }catch(e){ prompt("Copy this link:", link); } });
+
+// ---------- boot ----------
+async function boot(){
+  let fromLink = null;
+  const m = location.hash.match(/^#s=(.+)$/);
+  if(m){ try{ fromLink = await decodeState(m[1]); }catch(e){ fromLink = null; } }
+  if(fromLink){ Object.assign(S, {bags:fromLink.bags||S.bags, order:fromLink.order||S.order, tuesday:fromLink.tuesday||{}, notes:fromLink.notes||{}, brief:fromLink.brief||S.brief, by:fromLink.by||"", active:0, mode:"view"}); save(); }
+  else { try{ Object.assign(S, JSON.parse(localStorage.getItem(LS)||"{}")); }catch(e){} }
+  normalize(); renderBrief(); renderStage(); setMode(S.mode);
+  if(fromLink) toast("Opened a shared lineup");
+}
+boot();
+</script>
+</body>
+</html>
