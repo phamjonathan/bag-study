@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Bag Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2ede5; --bg2:#e9e2d7; --ink:#201915; --muted:#766b63; --line:#d6cbbd; --card:#fbf9f5;
+  --accent:#4a1f1f; --accent-ink:#f8f3ec; --soft:#e6dccf; --gold:#b48a5a; --ok:#3f6b4f;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#171311; --bg2:#1f1915; --ink:#f0e8df; --muted:#a69a8f; --line:#3b322c; --card:#211b18;
+  --accent:#e2c2b2; --accent-ink:#1b1512; --soft:#2c2420; --gold:#caa072; --ok:#8dbf9c; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#171311; --bg2:#1f1915; --ink:#f0e8df; --muted:#a69a8f; --line:#3b322c; --card:#211b18;
+  --accent:#e2c2b2; --accent-ink:#1b1512; --soft:#2c2420; --gold:#caa072; --ok:#8dbf9c; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Karla,"Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:28px 20px 110px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:300;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(42px,11vw,64px);line-height:.98}
+h2{font-size:clamp(28px,7vw,38px);line-height:1.08}
+h3{font-size:24px;font-weight:500;line-height:1.15}
+em{font-style:italic;font-weight:300}
+p{margin:0}
+.muted{color:var(--muted)}
+.step{display:none}
+.step.on{display:block;animation:rise .4s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.step.on{animation:none}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;font-size:16px;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn:focus-visible,.chip:focus-visible,.star:focus-visible,.yn button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.bar-nav{position:fixed;left:0;right:0;bottom:0;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:5}
+.bar-nav .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.progress{height:3px;background:var(--soft);border-radius:2px;overflow:hidden;margin:0 0 26px}
+.progress i{display:block;height:100%;background:var(--gold);width:0;transition:width .35s ease}
+.q{min-height:52vh}
+.q h2{margin:6px 0 22px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:11px 16px;border-radius:999px;font:inherit;font-size:16px;cursor:pointer;transition:background .15s,border-color .15s}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip.big{width:100%;text-align:left;padding:14px 18px;border-radius:14px}
+textarea,input[type=text],input[type=email]{width:100%;font:inherit;font-size:17px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;resize:vertical}
+textarea{min-height:110px}
+.hint{font-size:14px;color:var(--muted);margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin:0 0 18px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.bag-top{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center}
+.sil{width:96px;height:96px;color:var(--gold)}
+.sil svg{width:100%;height:100%}
+.brand{font-size:14px;color:var(--muted);letter-spacing:.02em}
+.price{font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:500;margin-top:4px}
+.price small{font:inherit;font-family:Karla,sans-serif;font-size:13px;color:var(--muted);font-weight:400;margin-left:6px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:16px 0 4px;font-size:15px}
+.facts b{display:block;font-weight:600;font-size:13px;color:var(--muted)}
+.sizebar{margin:14px 0 2px}
+.sizebar .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.sizebar .t{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:4px}
+.sizebar .t i{display:block;height:100%;background:var(--gold)}
+.tier{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:600;margin-left:6px}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:Fraunces,serif;font-size:22px;color:var(--muted)}
+details[open] summary::after{content:"–"}
+details ul{margin:10px 0 0;padding-left:18px;font-size:15px}
+details li{margin:6px 0}
+.colors{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.sw{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 12px 7px 7px;background:transparent;color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.sw i{width:22px;height:22px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.sw.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sw.out{opacity:.55}
+.sw small{color:var(--muted)}
+.rate{margin-top:18px;border-top:1px solid var(--line);padding-top:6px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;gap:10px}
+.row .nm{font-weight:500}
+.row .hint{margin:0;font-size:13px}
+.stars{display:flex;gap:2px}
+.star{width:32px;height:32px;border:0;background:transparent;cursor:pointer;color:var(--line);padding:0;font-size:24px;line-height:1}
+.star.on{color:var(--gold)}
+.yn{display:flex;gap:8px}
+.yn button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:8px 16px;border-radius:999px;font:inherit;font-size:15px;cursor:pointer}
+.yn button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.rk{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.rk:first-child{border-top:0}
+.rk .n{font-family:Fraunces,serif;font-size:30px;font-weight:300;color:var(--muted)}
+.rk .ar{display:flex;gap:4px}
+.rk .ar button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;cursor:pointer}
+.rk .ar button:disabled{opacity:.3}
+.summary{white-space:pre-wrap;font-size:14px;background:var(--soft);border-radius:14px;padding:14px 16px;max-height:260px;overflow:auto}
+.ok{color:var(--ok);font-weight:600}
+.resp{border-top:1px solid var(--line);padding:14px 0}
+.resp:first-child{border-top:0}
+.lb{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.lb:first-child{border-top:0}
+.lb .sc{font-family:Fraunces,serif;font-size:22px;font-weight:500}
+.lb .bar{height:6px;background:var(--soft);border-radius:3px;overflow:hidden;margin-top:6px}
+.lb .bar i{display:block;height:100%;background:var(--gold)}
+.tiny{font-size:13px;color:var(--muted)}
+.link{color:var(--ink)}
+.center{text-align:center}
+.count{font-family:Fraunces,serif;font-size:15px;color:var(--muted);margin-bottom:6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.two .card{margin:0;padding:14px}
+.two .card b{display:block;font-family:Fraunces,serif;font-size:20px;font-weight:500}
+.two .card span{font-size:14px;color:var(--muted)}
+.fits{margin-top:12px;font-size:15px}
+.fits span{display:inline-block;background:var(--soft);border-radius:8px;padding:5px 10px;margin:4px 6px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 0 WELCOME -->
+<section class="step on" id="s-welcome">
+  <p class="count">A short study, about six minutes</p>
+  <h1>Which bag is <em>actually</em> yours?</h1>
+  <p class="muted" style="margin:18px 0 28px;font-size:18px">Four bags made the shortlist. Before you see them, a few questions about how you really carry a bag. Then you rate each one, rank them, and the answers come back to Jon.</p>
+  <button class="btn" data-go="ask">Start</button>
+  <p class="hint" style="margin-top:28px">Answers save as you go. Nothing is submitted until the last screen.</p>
+</section>
+
+<!-- 1 QUESTIONS -->
+<section class="step" id="s-ask">
+  <div class="progress"><i id="pbar"></i></div>
+  <div class="q" id="qbox"></div>
+</section>
+
+<!-- 2 LINEUP -->
+<section class="step" id="s-bags">
+  <p class="count">The shortlist</p>
+  <h2 style="margin-bottom:8px">Four bags. Rate each one.</h2>
+  <p class="muted" style="margin-bottom:22px">Tap a color you'd pick, give stars in each category, then answer the Tuesday question. The prices are real. Two bags at the lower end cost about the same as one at the top.</p>
+  <div id="bags"></div>
+</section>
+
+<!-- 3 RANK -->
+<section class="step" id="s-rank">
+  <p class="count">Last step</p>
+  <h2 style="margin-bottom:8px">Put them in order.</h2>
+  <p class="muted" style="margin-bottom:18px">Your stars are a guide. Your gut is the answer. Move your favorite to the top.</p>
+  <div class="card" id="ranklist"></div>
+</section>
+
+<!-- 4 DONE -->
+<section class="step" id="s-done">
+  <p class="count">Done</p>
+  <h2 style="margin-bottom:12px">Thank you.</h2>
+  <p id="donemsg" class="muted" style="margin-bottom:18px"></p>
+  <div class="summary" id="sumtext"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+    <a class="btn ghost" id="mailbtn" href="#">Email answers</a>
+    <button class="btn ghost" id="copybtn">Copy answers</button>
+    <button class="btn ghost" id="sharebtn" hidden>Share</button>
+    <button class="btn ghost" data-go="ask">Edit answers</button>
+  </div>
+  <p class="hint" id="resultslink" hidden><a class="link" href="#results">See everyone's results</a></p>
+</section>
+
+<!-- 5 RESULTS (everyone) -->
+<section class="step" id="s-results">
+  <p class="count">Results</p>
+  <h2 style="margin-bottom:8px">Where things stand.</h2>
+  <p class="muted" id="rcount" style="margin-bottom:18px"></p>
+  <div class="card"><p class="tiny" style="margin-bottom:8px">Overall, by ranking and stars</p><div id="leader"></div></div>
+  <div class="card"><p class="tiny" style="margin-bottom:8px">The Tuesday test</p><div id="tuesday"></div></div>
+  <div class="card"><p class="tiny" style="margin-bottom:8px">Answers</p><div id="responses"></div></div>
+  <button class="btn ghost" data-go="welcome">Back to start</button>
+</section>
+
+</div>
+
+<div class="bar-nav" id="nav" hidden>
+  <div class="in">
+    <button class="btn ghost" id="back">Back</button>
+    <span class="tiny" id="navhint"></span>
+    <button class="btn" id="next">Next</button>
+  </div>
+</div>
+
+<script>
+// ---------- delivery ----------
+// Submissions are emailed to Jon through formsubmit.co (a form-to-email relay, no account needed).
+// The first submission from a new host sends Jon an activation email; after he taps Activate, every
+// submission arrives as a table. If the typed "copy to" address is set, the same email is CC'd there.
+const TO = "jonathan@velumagency.com";
+const ENDPOINT = "https://formsubmit.co/ajax/" + TO;
+
+// ---------- data ----------
+const QUESTIONS = [
+  {id:"name", type:"text", k:"Name", t:"First, what should we call you?", ph:"Your name"},
+  {id:"email", type:"email", k:"Copy to", t:"Want a copy of your answers by email?", ph:"you@example.com"},
+  {id:"carry", type:"multi", k:"How she carries", t:"How do you carry a bag most days?", opts:["Crossbody","On the shoulder","In my hand","Depends on the day"]},
+  {id:"inside", type:"multi", k:"Inside on a normal day", t:"What's inside on a normal day?", opts:["Phone","Wallet or cardholder","Keys","Sunglasses","Makeup bag","Water bottle","Tablet or laptop","Snacks, charger, chaos"]},
+  {id:"stuff", type:"single", k:"Overstuffs", t:"Honestly, do you overstuff?", opts:["Never, I travel light","Sometimes","Always. Everything comes with me."]},
+  {id:"owned", type:"long", k:"Bags she owns", t:"Which bags do you already own and reach for most?", ph:"Brands, colors, sizes. The ones that actually leave the house."},
+  {id:"wear", type:"multi", k:"Wears most", t:"What do you wear most?", opts:["Black","Brown, tan, camel","Cream and white","Denim and casual","Color, prints","Dressed up"]},
+  {id:"use", type:"multi", k:"Bag is for", t:"What is this bag mostly for?", opts:["Everyday errands","Work","Dinners and going out","Travel","All of it"]},
+  {id:"one", type:"single", k:"One or two", t:"If the budget were fixed, would you rather have one bag at the top of the range, or two at the lower end?", opts:["One. The one I really want.","Two. More options.","Surprise me."]},
+  {id:"never", type:"long", k:"Never wants", t:"Anything you'd never want in a bag?", ph:"Too heavy, no strap, light colors, logos, slouchy, stiff, anything."},
+];
+
+const CATS = [
+  {id:"style", name:"Style", hint:"Do you love how it looks?"},
+  {id:"everyday", name:"Everyday carry", hint:"Fits your stuff, easy to get into"},
+  {id:"versatility", name:"Versatility", hint:"Hand, shoulder, crossbody. Day to night."},
+  {id:"price", name:"Price", hint:"5 feels fair, 1 feels painful"},
+  {id:"value", name:"Value", hint:"Craft and leather for the money"},
+  {id:"keep", name:"Keeps its value", hint:"Classic enough for years"},
+];
+
+const BAGS = [
+  {id:"camille", brand:"Celine", name:"Medium Camille 16 Soft", price:3550, priceNote:"", tier:"Medium", w:36, h:29.5, d:7,
+   dims:"36 × 29.5 × 7 cm (14.2 × 11.6 × 2.8 in)", leather:"Smooth calfskin, lambskin lining", hw:"Gold turn lock",
+   carry:"Shoulder (short strap) · crossbody (long strap) · hand", carryList:["Shoulder","Crossbody","Hand"],
+   shape:"Soft hobo. Wide, flat, and slouchy, with a structured cut borrowed from Celine's 16 tote.",
+   fits:["Trousers and a blazer","Tan coat and knee boots","Jeans and a white tee"],
+   reviews:["Owners who tried both sizes say the small is too small at 5'6\" and up; the medium is the one.","Compared to an Hermès Evelyne in how it wears, roomy and relaxed.","Spotted on Reese Witherspoon, Naomi Watts, and Sydney Sweeney this year. It's having a moment, which also means you'll see it around."],
+   colors:[
+     {name:"Modern Taupe", hex:"#a8988a", note:"Sold out at Celine", out:true, url:"https://www.celine.com/en-us/women/handbags/more-lines-2/medium-camille-16-soft-bag-in-smooth-calfskin-119563FX9.18GT.html"},
+     {name:"Tan", hex:"#b98a5e", note:"In stock", url:"https://www.celine.com/en-us/women/handbags/more-lines-2/medium-camille-16-soft-bag-in-smooth-calfskin-119563FX9.04LU.html"},
+     {name:"Chestnut", hex:"#6e4634", note:"In stock, new this season", url:"https://www.celine.com/en-us/women/handbags/more-lines-2/medium-camille-16-soft-bag-in-smooth-calfskin-119563FX9.18CH.html"},
+     {name:"Purple", hex:"#5c3a6b", note:"Via Lyst, third-party seller", url:"https://www.lyst.com/"},
+   ], sil:"hobo"},
+  {id:"flamenco", brand:"Loewe", name:"Medium Flamenco Clutch", price:3250, priceNote:"approx.", tier:"Medium", w:30, h:24.5, d:10.5,
+   dims:"30 × 24.5 × 10.5 cm (11.8 × 9.7 × 4.1 in)", leather:"Nappa calfskin, suede lining", hw:"Magnetic closure, knot drawstrings",
+   carry:"Clutch (hold by the knots) · shoulder · crossbody (detachable strap)", carryList:["Hand","Shoulder","Crossbody"],
+   shape:"Slouchy pouch that cinches at the top. Soft and casual, with the Loewe knots as the signature.",
+   fits:["Linen and sandals","Oversized knit and jeans","A slip dress, carried as a clutch"],
+   reviews:["The leather is the thing. Owners call it supple, buttery, and beautifully made.","The strap is thin, and some find it uncomfortable loaded up. Several owners carry it as a clutch most of the time.","Corners can show wear with heavy crossbody use. Treat it gently."],
+   colors:[
+     {name:"Sand", hex:"#d9c6a5", note:"Light, shows marks more", url:"https://www.loewe.com/usa/en/women/bags/flamenco/medium-flamenco-clutch-in-nappa-calfskin/A411FC1XD4-2150.html"},
+     {name:"Chocolate", hex:"#4b3127", note:"Dark, forgiving", url:"https://www.loewe.com/usa/en/women/bags/flamenco/medium-flamenco-clutch-in-nappa-calfskin/A411FC1XD4-3606.html"},
+   ], sil:"pouch"},
+  {id:"rodeo", brand:"Balenciaga", name:"Rodeo Small", price:4350, priceNote:"approx.", tier:"Small–Medium", w:27, h:20, d:10,
+   dims:"27 × 20 × 10 cm (10.6 × 7.9 × 3.9 in)", leather:"Smooth calfskin, aged hardware", hw:"Turn lock, charms",
+   carry:"Top handle · shoulder strap (removable) · crossbody", carryList:["Handle","Shoulder","Crossbody"],
+   shape:"Structured satchel with a top handle. The most 'handbag' of the four; a vintage Kelly feel, deliberately worn-in.",
+   fits:["Blazer and loafers","Leather jacket and boots","Dressed up for dinner"],
+   reviews:["Praised as well designed and carefully made. Fans call it modern and under the radar.","The long strap is thin, and the bag can feel heavy worn crossbody. It's happiest on the arm or shoulder.","One owner reported a frustrating repair experience with Balenciaga."],
+   colors:[
+     {name:"Caramel", hex:"#b87a45", note:"Warm, mid brown", url:"https://www.balenciaga.com/en-us/rodeo-handbag-small-caramel-814479321.html"},
+   ], sil:"satchel"},
+  {id:"andiamo", brand:"Bottega Veneta", name:"Medium Andiamo", price:5900, priceNote:"", tier:"Medium–Large", w:31, h:25, d:13,
+   dims:"31 × 25 × 13 cm (12 × 10 × 5 in)", leather:"Intrecciato woven lambskin", hw:"Brass knot, magnetic closure",
+   carry:"Top handle · shoulder · crossbody (sliding strap)", carryList:["Handle","Shoulder","Crossbody"],
+   shape:"Woven carry-all with rounded corners. Roomy, with two compartments and a zip pocket. The heaviest of the four.",
+   fits:["Trench and trousers","Airport, with a sweater and sneakers","Work, with everything inside"],
+   reviews:["Treated as a modern classic. It crosses from errands to work to travel, and it reads as quiet luxury.","Owners note the strap, knot, and pocket all detach, so it can go minimal.","Woven lambskin is soft. Corners and edges show wear faster than a smooth calfskin bag."],
+   colors:[
+     {name:"Deep Mahogany", hex:"#5a2e24", note:"Rich reddish brown", url:"https://www.bottegaveneta.com/en-us/andiamo-deep-mahogany-814493119.html"},
+   ], sil:"tote"},
+];
+
+const SIL = {
+  hobo:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 44c0-14 8-26 20-26s20 12 20 26" opacity=".7"/><path d="M14 46h72c2 0 3 2 3 4l-5 30c-1 4-4 7-8 7H24c-4 0-7-3-8-7l-5-30c0-2 1-4 3-4z" fill="currentColor" fill-opacity=".12"/><circle cx="50" cy="56" r="3"/></svg>`,
+  pouch:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M50 10c0 10-12 18-14 30" opacity=".7"/><path d="M50 10c0 10 12 18 14 30" opacity=".7"/><path d="M34 40c-14 6-20 18-18 32 2 10 12 16 34 16s32-6 34-16c2-14-4-26-18-32" fill="currentColor" fill-opacity=".12"/><path d="M34 40c8 4 24 4 32 0"/><circle cx="22" cy="70" r="4"/><circle cx="78" cy="70" r="4"/></svg>`,
+  satchel:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M38 34c0-10 5-16 12-16s12 6 12 16" opacity=".7"/><rect x="14" y="34" width="72" height="50" rx="8" fill="currentColor" fill-opacity=".12"/><path d="M14 52h72"/><rect x="42" y="46" width="16" height="12" rx="3"/></svg>`,
+  tote:`<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M32 36c0-14 8-22 18-22s18 8 18 22" opacity=".7"/><path d="M16 36h68l-4 44c0 4-4 7-8 7H28c-4 0-8-3-8-7z" fill="currentColor" fill-opacity=".12"/><path d="M26 50l48 20M26 70l48-20M38 46l24 32M62 46L38 78" opacity=".35"/><circle cx="50" cy="36" r="4" fill="currentColor"/></svg>`
+};
+
+// ---------- state ----------
+const LS = "bagstudy-v2";
+let S = {answers:{}, ratings:{}, tuesday:{}, color:{}, order:BAGS.map(b=>b.id), qi:0, submitted:false};
+try{ Object.assign(S, JSON.parse(localStorage.getItem(LS)||"{}")); }catch(e){}
+if(!Array.isArray(S.order) || S.order.length!==BAGS.length) S.order = BAGS.map(b=>b.id);
+if(typeof S.qi !== "number" || S.qi < 0 || S.qi >= QUESTIONS.length) S.qi = 0;
+const save = () => { try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} };
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => "$" + Number(n).toLocaleString("en-US");
+const bagById = id => BAGS.find(b=>b.id===id);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ccEmail = () => { const v = (S.answers.email||"").trim(); return EMAIL_RE.test(v) ? v : ""; };
+
+// ---------- navigation ----------
+let step = "welcome";
+function go(s){
+  step = s;
+  document.querySelectorAll(".step").forEach(el => el.classList.toggle("on", el.id === "s-"+s));
+  const nav = $("#nav"); nav.hidden = !(s==="ask"||s==="bags"||s==="rank");
+  if(s==="ask") renderQ();
+  if(s==="bags") renderBags();
+  if(s==="rank") renderRank();
+  if(s==="done") renderDone();
+  if(s==="results") renderResults();
+  updateNav();
+  window.scrollTo({top:0});
+}
+function updateNav(){
+  const next = $("#next"), hint = $("#navhint");
+  if(step==="ask"){
+    const q = QUESTIONS[S.qi]; const v = S.answers[q.id];
+    let ok;
+    if(q.type==="long") ok = true;
+    else if(q.type==="text") ok = !!(v&&v.trim());
+    else if(q.type==="email") ok = !(v&&v.trim()) || EMAIL_RE.test(v.trim());
+    else ok = !!(v && v.length);
+    next.disabled = !ok; next.textContent = S.qi===QUESTIONS.length-1 ? "See the bags" : "Next";
+    hint.textContent = (S.qi+1) + " of " + QUESTIONS.length;
+  } else if(step==="bags"){
+    const done = BAGS.filter(b => CATS.every(c => (S.ratings[b.id]||{})[c.id]) && S.tuesday[b.id]).length;
+    next.disabled = done < BAGS.length; next.textContent = "Rank them";
+    hint.textContent = done + " of " + BAGS.length + " rated";
+  } else if(step==="rank"){
+    next.disabled = false; next.textContent = S.submitted ? "Update answers" : "Send to Jon"; hint.textContent = "";
+  }
+}
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if(g){ go(g.dataset.go); return; }
+});
+$("#back").addEventListener("click", () => {
+  if(step==="ask"){ if(S.qi>0){ S.qi--; save(); renderQ(); updateNav(); } else go("welcome"); }
+  else if(step==="bags"){ S.qi = QUESTIONS.length-1; go("ask"); }
+  else if(step==="rank"){ go("bags"); }
+});
+$("#next").addEventListener("click", () => {
+  if(step==="ask"){ if(S.qi<QUESTIONS.length-1){ S.qi++; save(); renderQ(); updateNav(); } else go("bags"); }
+  else if(step==="bags"){ go("rank"); }
+  else if(step==="rank"){ submit(); }
+});
+
+// ---------- questions ----------
+function renderQ(){
+  const q = QUESTIONS[S.qi]; const v = S.answers[q.id];
+  $("#pbar").style.width = ((S.qi)/QUESTIONS.length*100) + "%";
+  let body = "";
+  if(q.type==="text") body = `<input type="text" id="qin" placeholder="${esc(q.ph)}" value="${esc(v||"")}" autocomplete="off">`;
+  else if(q.type==="email") body = `<input type="email" id="qin" inputmode="email" autocomplete="email" placeholder="${esc(q.ph)}" value="${esc(v||"")}"><p class="hint">Optional. Jon gets your answers either way; this sends you the same email.</p>`;
+  else if(q.type==="long") body = `<textarea id="qin" placeholder="${esc(q.ph)}">${esc(v||"")}</textarea><p class="hint">Optional. Skip if nothing comes to mind.</p>`;
+  else body = `<div class="chips">${q.opts.map(o => `<button class="chip ${q.type==="single"?"big":""} ${(v||[]).includes(o)?"on":""}" data-opt="${esc(o)}">${esc(o)}</button>`).join("")}</div>${q.type==="multi"?'<p class="hint">Pick as many as apply.</p>':''}`;
+  $("#qbox").innerHTML = `<h2>${esc(q.t)}</h2>${body}`;
+  const qin = $("#qin");
+  if(qin){ qin.addEventListener("input", () => { S.answers[q.id] = qin.value; save(); updateNav(); }); if(q.type==="text") qin.focus(); }
+  $("#qbox").querySelectorAll("[data-opt]").forEach(btn => btn.addEventListener("click", () => {
+    const o = btn.dataset.opt; let cur = S.answers[q.id] || [];
+    if(q.type==="single") cur = [o]; else cur = cur.includes(o) ? cur.filter(x=>x!==o) : cur.concat(o);
+    S.answers[q.id] = cur; save();
+    $("#qbox").querySelectorAll("[data-opt]").forEach(b => b.classList.toggle("on", cur.includes(b.dataset.opt)));
+    updateNav();
+    if(q.type==="single") setTimeout(() => $("#next").click(), 220);
+  }));
+}
+
+// ---------- bags ----------
+const maxW = Math.max(...BAGS.map(b=>b.w));
+function renderBags(){
+  $("#bags").innerHTML = BAGS.map(b => {
+    const r = S.ratings[b.id]||{}; const col = S.color[b.id] || b.colors.find(c=>!c.out).name;
+    return `<article class="card" data-bag="${b.id}">
+      <div class="bag-top"><div class="sil">${SIL[b.sil]}</div>
+        <div><p class="brand">${esc(b.brand)}</p><h3>${esc(b.name)}</h3><p class="price">${fmt(b.price)}${b.priceNote?`<small>${esc(b.priceNote)}</small>`:""}</p></div></div>
+      <p style="margin-top:14px">${esc(b.shape)}</p>
+      <div class="sizebar"><div class="lab"><span>Size<span class="tier">${esc(b.tier)}</span></span><span>${esc(b.dims)}</span></div><div class="t"><i style="width:${b.w/maxW*100}%"></i></div></div>
+      <div class="facts"><div><b>Carry</b>${esc(b.carry)}</div><div><b>Leather</b>${esc(b.leather)}</div><div><b>Hardware</b>${esc(b.hw)}</div><div><b>Depth</b>${b.d} cm, ${b.d<9?"slim":"roomy"}</div></div>
+      <div class="fits">${b.fits.map(f=>`<span>${esc(f)}</span>`).join("")}</div>
+      <details><summary>What owners say</summary><ul>${b.reviews.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+      <div class="colors">${b.colors.map(c => `<button class="sw ${col===c.name?"on":""} ${c.out?"out":""}" data-col="${esc(c.name)}"><i style="background:${c.hex}"></i>${esc(c.name)}${c.note?` <small>· ${esc(c.note)}</small>`:""}</button>`).join("")}</div>
+      <p class="hint"><a class="link" href="${esc((b.colors.find(c=>c.name===col)||b.colors[0]).url)}" target="_blank" rel="noopener">See photos on the product page</a></p>
+      <div class="rate">${CATS.map(c => `<div class="row"><div><div class="nm">${esc(c.name)}</div><p class="hint">${esc(c.hint)}</p></div><div class="stars" data-cat="${c.id}">${[1,2,3,4,5].map(n=>`<button class="star ${(r[c.id]||0)>=n?"on":""}" data-n="${n}" aria-label="${c.name} ${n} of 5">★</button>`).join("")}</div></div>`).join("")}
+        <div class="row"><div><div class="nm">Would you reach for this on a normal Tuesday?</div></div><div class="yn"><button data-yn="yes" class="${S.tuesday[b.id]==="yes"?"on":""}">Yes</button><button data-yn="no" class="${S.tuesday[b.id]==="no"?"on":""}">No</button></div></div>
+      </div></article>`;
+  }).join("");
+  $("#bags").querySelectorAll("article").forEach(art => {
+    const id = art.dataset.bag;
+    art.querySelectorAll("[data-col]").forEach(btn => btn.addEventListener("click", () => {
+      S.color[id] = btn.dataset.col; save();
+      art.querySelectorAll("[data-col]").forEach(b => b.classList.toggle("on", b===btn));
+      const c = bagById(id).colors.find(x=>x.name===btn.dataset.col); art.querySelector(".hint .link").href = c.url;
+    }));
+    art.querySelectorAll(".stars").forEach(group => group.querySelectorAll(".star").forEach(st => st.addEventListener("click", () => {
+      const n = +st.dataset.n; S.ratings[id] = S.ratings[id]||{}; S.ratings[id][group.dataset.cat] = n; save();
+      group.querySelectorAll(".star").forEach(x => x.classList.toggle("on", +x.dataset.n <= n)); updateNav();
+    })));
+    art.querySelectorAll("[data-yn]").forEach(btn => btn.addEventListener("click", () => {
+      S.tuesday[id] = btn.dataset.yn; save(); art.querySelectorAll("[data-yn]").forEach(b => b.classList.toggle("on", b===btn)); updateNav();
+    }));
+  });
+}
+
+// ---------- rank ----------
+function renderRank(){
+  $("#ranklist").innerHTML = S.order.map((id,i) => { const b = bagById(id); const r = S.ratings[id]||{}; const avg = CATS.reduce((a,c)=>a+(r[c.id]||0),0)/CATS.length;
+    return `<div class="rk"><div class="n">${i+1}</div><div><div style="font-weight:600">${esc(b.brand)} ${esc(b.name)}</div><div class="tiny">${esc(S.color[id]||b.colors.find(c=>!c.out).name)} · ${fmt(b.price)} · ${avg.toFixed(1)}★ · Tuesday: ${S.tuesday[id]||"–"}</div></div>
+      <div class="ar"><button data-mv="-1" data-i="${i}" ${i===0?"disabled":""} aria-label="Move up">↑</button><button data-mv="1" data-i="${i}" ${i===S.order.length-1?"disabled":""} aria-label="Move down">↓</button></div></div>`; }).join("");
+  $("#ranklist").querySelectorAll("[data-mv]").forEach(btn => btn.addEventListener("click", () => {
+    const i = +btn.dataset.i, j = i + (+btn.dataset.mv); [S.order[i], S.order[j]] = [S.order[j], S.order[i]]; save(); renderRank();
+  }));
+}
+
+// ---------- submit ----------
+function summaryText(){
+  const a = S.answers; const L = [];
+  L.push("Bag study answers from " + (a.name||"someone"));
+  QUESTIONS.slice(1).forEach(q => { if(q.id==="email") return; const v = a[q.id]; if(v && (Array.isArray(v)?v.length:v.trim())) L.push("• " + q.t + "\n  " + (Array.isArray(v)?v.join(", "):v)); });
+  L.push("");
+  L.push("Ranking:");
+  S.order.forEach((id,i) => { const b = bagById(id), r = S.ratings[id]||{}; L.push((i+1) + ". " + b.brand + " " + b.name + " in " + (S.color[id]||b.colors.find(c=>!c.out).name) + " — " + CATS.map(c => c.name + " " + (r[c.id]||"–")).join(", ") + " — Tuesday: " + (S.tuesday[id]||"–")); });
+  return L.join("\n");
+}
+function emailPayload(){
+  const a = S.answers; const p = {};
+  p._subject = "Bag study: " + (a.name||"someone");
+  p._template = "table";
+  p._captcha = "false";
+  p.Name = a.name||"";
+  const cc = ccEmail(); if(cc){ p._cc = cc; p._replyto = cc; p["Copy to"] = cc; }
+  p.Ranking = S.order.map((id,i) => { const b = bagById(id); return (i+1) + ". " + b.brand + " " + b.name + " in " + (S.color[id]||b.colors.find(c=>!c.out).name); }).join("  |  ");
+  QUESTIONS.slice(2).forEach(q => { const v = a[q.id]; p[q.k] = Array.isArray(v) ? v.join(", ") : (v||""); });
+  BAGS.forEach(b => { const r = S.ratings[b.id]||{}; p[b.brand + " " + b.name] = CATS.map(c => c.name + " " + (r[c.id]||"–")).join(", ") + "  ·  Tuesday: " + (S.tuesday[b.id]||"–"); });
+  p["Plain text"] = summaryText();
+  return p;
+}
+async function submit(){
+  S.submitted = true; save();
+  const next = $("#next"); next.disabled = true; next.textContent = "Sending…";
+  let shared = false, note = "";
+  try{
+    const res = await fetch(ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json", "Accept":"application/json"}, body: JSON.stringify(emailPayload())});
+    let j = {}; try{ j = await res.json(); }catch(e){}
+    shared = res.ok && String(j.success) === "true";
+    note = String(j.message||"");
+  }catch(e){}
+  S.shared = shared; S.sentNote = note; if(shared) S.sentAt = Date.now(); save();
+  go("done");
+}
+function mailtoHref(){
+  const cc = ccEmail();
+  return "mailto:" + TO + "?" + (cc ? "cc=" + encodeURIComponent(cc) + "&" : "") + "subject=" + encodeURIComponent("Bag study: " + (S.answers.name||"")) + "&body=" + encodeURIComponent(summaryText());
+}
+function renderDone(){
+  const txt = summaryText(); $("#sumtext").textContent = txt;
+  const cc = ccEmail();
+  $("#donemsg").textContent = S.shared
+    ? "Your answers were emailed to Jon" + (cc ? " and to " + cc : "") + ". You can come back to this link and change them any time."
+    : "The automatic email did not go through. Tap Email answers to send them from your mail app, or copy them below. They're saved on this device too.";
+  $("#mailbtn").href = mailtoHref();
+  $("#resultslink").hidden = true;
+  $("#sharebtn").hidden = !navigator.share;
+}
+$("#copybtn").addEventListener("click", async () => { try{ await navigator.clipboard.writeText(summaryText()); $("#copybtn").textContent = "Copied"; setTimeout(()=>$("#copybtn").textContent="Copy answers",1800); }catch(e){ $("#copybtn").textContent = "Select the text above"; } });
+$("#sharebtn").addEventListener("click", () => { navigator.share({title:"Bag study answers", text:summaryText()}).catch(()=>{}); });
+
+// ---------- results ----------
+// Responses arrive by email now, so this view only shows what this device submitted.
+let responses = {};
+function renderResults(){
+  responses = {};
+  if(S.submitted) responses.local = {name:S.answers.name||"", answers:S.answers, ratings:S.ratings, tuesday:S.tuesday, color:S.color, order:S.order};
+  const list = Object.values(responses);
+  $("#rcount").textContent = list.length ? list.length + (list.length===1?" response":" responses") + " on this device. Everyone's answers are in Jon's inbox." : "No responses on this device yet.";
+  const pts = {}, stars = {}, tues = {};
+  BAGS.forEach(b => { pts[b.id]=0; stars[b.id]=[]; tues[b.id]={yes:0,no:0}; });
+  list.forEach(r => {
+    (r.order||[]).forEach((id,i) => { if(pts[id]!==undefined) pts[id] += (BAGS.length - i); });
+    BAGS.forEach(b => { const rr = (r.ratings||{})[b.id]; if(rr){ const vals = CATS.map(c=>rr[c.id]).filter(Boolean); if(vals.length) stars[b.id].push(vals.reduce((a,x)=>a+x,0)/vals.length); }
+      const t = (r.tuesday||{})[b.id]; if(t==="yes") tues[b.id].yes++; if(t==="no") tues[b.id].no++; });
+  });
+  const maxPts = Math.max(1, ...Object.values(pts));
+  const ranked = BAGS.map(b => ({b, p:pts[b.id], s: stars[b.id].length ? stars[b.id].reduce((a,x)=>a+x,0)/stars[b.id].length : null})).sort((x,y) => y.p - x.p || (y.s||0) - (x.s||0));
+  $("#leader").innerHTML = list.length ? ranked.map((x,i) => `<div class="lb"><div class="n" style="font-family:Fraunces,serif;font-size:22px;color:var(--muted)">${i+1}</div><div><div style="font-weight:600">${esc(x.b.brand)} ${esc(x.b.name)}</div><div class="bar"><i style="width:${x.p/maxPts*100}%"></i></div></div><div class="sc">${x.s===null?"–":x.s.toFixed(1)+"★"}</div></div>`).join("") : `<p class="tiny">Nothing yet.</p>`;
+  $("#tuesday").innerHTML = BAGS.map(b => `<div class="lb"><div></div><div style="font-weight:500">${esc(b.name)}</div><div class="tiny">${tues[b.id].yes} yes · ${tues[b.id].no} no</div></div>`).join("");
+  $("#responses").innerHTML = list.length ? list.map(r => { const a = r.answers||{}; return `<div class="resp"><div style="font-weight:600">${esc(r.name||"Someone")}</div><div class="tiny">Ranked: ${(r.order||[]).map(id=>bagById(id)?bagById(id).name+" ("+esc((r.color||{})[id]||"")+")":id).join(" → ")}</div>${QUESTIONS.slice(1).map(q => { if(q.id==="email") return ""; const v = a[q.id]; return v && (Array.isArray(v)?v.length:String(v).trim()) ? `<div class="tiny" style="margin-top:4px"><span style="color:var(--ink)">${esc(q.t)}</span> ${esc(Array.isArray(v)?v.join(", "):v)}</div>` : ""; }).join("")}</div>`; }).join("") : `<p class="tiny">Nothing yet.</p>`;
+}
+
+// ---------- boot ----------
+window.addEventListener("hashchange", () => { if(location.hash === "#results") go("results"); });
+function boot(){
+  if(location.hash === "#results") go("results"); else if(S.submitted) go("done");
+}
+boot();
+</script>
+</body>
+</html>
