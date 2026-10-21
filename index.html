@@ -423,8 +423,9 @@ async function submit(){
   S.submitted = true; save();
   const next = $("#next"); next.disabled = true; next.textContent = "Sending…";
   let shared = false, note = "";
+  const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 15000);
   try{
-    const res = await fetch(ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json", "Accept":"application/json"}, body: JSON.stringify(emailPayload())});
+    const res = await fetch(ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json", "Accept":"application/json"}, body: JSON.stringify(emailPayload()), signal: ctl.signal});
     let j = {}; try{ j = await res.json(); }catch(e){}
     shared = res.ok && String(j.success) === "true";
     note = String(j.message||"");
